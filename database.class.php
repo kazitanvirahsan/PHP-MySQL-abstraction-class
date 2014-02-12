@@ -16,20 +16,55 @@ class Database  {
     //stores database
     private $database;
     
+    // store database configuration parameters
+    private static $_dbparams;
+    
     /* 
      * defining Instance class method
      * returns an existing instance of this class / create a new instance
      */
-    public static function Instance()  {
+    public static function Instance($dbparams = null)  {
         //check if $_DBConn is defined  
         if( self::$_DBConn !== null )  {
             // returns existing Database Class instance
             return self::$_DBConn;
         }
+        
+        /* copy $dbparams to static variable $_dbparams */
+        self::$_dbparams = $dbparams;
+        
         //returns new Database instance
         return self::$_DBConn = new Database();          
-    }// End of Instance method 
+    }// End of Instance method
     
+    
+   /*
+    *  define destroy function
+    */
+    public static function Destroy()  {
+        // assign null to $_DBConn 
+        self::$_DBConn = null;    
+    }//End of Destroy function
+    
+    /* define read db parameters*/
+    public function readDbParams()  {
+        /* check db_params is not empty and it is an array */
+        if(!empty(self::$_dbparams) && is_array(self::$_dbparams)) {
+            // Use the default values
+            $this->hostname = self::$_dbparams['server'];
+            $this->username = self::$_dbparams['username'];
+            $this->password = self::$_dbparams['password'];
+            $this->database = self::$_dbparams['database'];
+            return;
+        }
+        //alternatively read db cong from a file
+        //$ini_array = parse_ini_file("config.ini");
+        // Use the default values
+        //$this->hostname = $ini_array['server'];
+        //$this->username = $ini_array['username'];
+        //$this->password = $ini_array['password'];
+        //$this->database = $ini_array['database'];
+    } 
     
     /*
      * define constructor
@@ -39,15 +74,10 @@ class Database  {
      * $password string
      * $dbname string
      */
-    public function __construct()  {
-            //Read config.ini file
-            $ini_array = parse_ini_file("config.ini");
-        
-            // Use the default values
-            $this->hostname = $ini_array['server'];
-            $this->username = $ini_array['username'];
-            $this->password = $ini_array['password'];
-            $this->database = $ini_array['database'];
+    public function __construct($dbparams = NULL)  {
+            
+            //read db parameters
+            $this->readDbParams();    
         
             //make dsn
             $dsn = 'mysql:host='. $this->hostname .';dbname=' . $this->database ;
